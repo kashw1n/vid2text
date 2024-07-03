@@ -1,10 +1,10 @@
 from datetime import datetime
 from sqlite_utils import Database
 from sqlite_utils.db import NotFoundError
-from model import VideoInfo, VIDEO_TABLE_SCHEMA
+from .model import VideoInfo, VIDEO_TABLE_SCHEMA
 
 class VideoDatabase:
-    def __init__(self, db_path: str = "knowledge.db") -> None:
+    def __init__(self, db_path: str) -> None:
         self.db = Database(db_path)
         self.initialize_db()
 
