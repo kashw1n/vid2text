@@ -33,7 +33,6 @@ class LocalProcessor(BaseProcessor):
             return
 
         audio_file = Transcriber.load_audio(location)
-        print("AUDIO FILE IS ", audio_file)
         transcription = Transcriber.transcribe_audio(audio_file)
 
         video_info = VideoInfo(
