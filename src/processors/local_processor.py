@@ -13,12 +13,12 @@ class LocalProcessor(BaseProcessor):
         with open(input_file, 'r') as file:
             lines = file.read().splitlines()
         for line in lines:
-            if os.path.isfile(line) and line.endswith(('.mp4', '.avi', '.mov', '.mkv')):
+            if os.path.isfile(line) and line.endswith(('.mp4', '.avi', '.mov', '.mkv', '.m4v')):
                 video_paths.append(os.path.abspath(line))
             elif os.path.isdir(line):
                 for root, _, files in os.walk(line):
                     for file in files:
-                        if file.endswith(('.mp4', '.avi', '.mov', '.mkv')):
+                        if file.endswith(('.mp4', '.avi', '.mov', '.mkv', '.m4v')):
                             video_paths.append(os.path.join(root, file))
         return video_paths
 
@@ -32,7 +32,6 @@ class LocalProcessor(BaseProcessor):
             logging.info(f'Video with ID {video_id} already processed.')
             return
 
-        print("LOCATION IS", location)
         audio_file = Transcriber.load_audio(location)
         print("AUDIO FILE IS ", audio_file)
         transcription = Transcriber.transcribe_audio(audio_file)
