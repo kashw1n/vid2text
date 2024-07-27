@@ -2,3 +2,6 @@ sqlite_utils
 youtube_transcript_api 
 bs4
 mlx-whisper
+ffmpeg-python
+yt-dlp[default]
+pydantic
