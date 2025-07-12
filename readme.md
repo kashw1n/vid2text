@@ -1,77 +1,118 @@
-# Video Knowledge Project
+# Video Knowledge CLI
 
-This project is designed to process videos from YouTube, local files, and .m3u8 streams, extract their content, and store the information in a database for easy access and analysis.
+Process YouTube videos, local files, and M3U8 streams to extract searchable knowledge.
 
 ## Features
+- **Multi-source**: YouTube, local videos, M3U8 streams
+- **Auto-transcription**: MLX Whisper (macOS) or OpenAI Whisper (cross-platform)
+- **SQLite storage**: Searchable database in `~/.video-knowledge/knowledge.db`
+- **Datasette integration**: Browse data with web GUI
 
-- Process YouTube videos, local video files, and .m3u8 streams
-- Extract video metadata (title, upload date, creator)
-- Transcribe video content using MLX Whisper
-- Store video information in a SQLite database
-- Configurable logging and transcription model
-- Self-contained Python environment with no system dependencies
+## Quick Start
+
+```bash
+# Install
+pip install -e .
+
+# Process single video
+video-knowledge youtube "https://youtu.be/dQw4w9WgXcQ"
+
+# Batch process from YAML
+video-knowledge process videos.yaml
+
+# View in browser (requires datasette)
+video-knowledge view
+```
 
 ## Installation
 
-1. Clone the repository:
-   ```
-   git clone https://github.com/yourusername/video-knowledge-project.git
-   cd video-knowledge-project
-   ```
+**Prerequisites:** Python 3.8+, FFmpeg
 
-2. Create a virtual environment and activate it:
-   ```
-   python -m venv venv
-   source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
-   ```
+```bash
+git clone https://github.com/yourusername/video-knowledge-project.git
+cd video-knowledge-project
+python -m venv venv && source venv/bin/activate
+pip install -e .
 
-3. Install the required packages:
-   ```
-   pip install -r requirements.txt
-   ```
+# Install FFmpeg:
+# macOS: brew install ffmpeg
+# Ubuntu: sudo apt install ffmpeg
+# Windows: Download from ffmpeg.org
+```
 
 ## Usage
 
-1. Prepare an input file:
-   - For YouTube videos: Create a text file with YouTube URLs, one per line. Name it `youtube-urls.txt`.
-   - For local videos: Create a text file with paths to video files or directories, one per line. Name it `local-videos.txt`.
-   - For .m3u8 streams: Create a text file with .m3u8 URLs, one per line. Name it `m3u8-streams.txt`.
+### Single Videos
+```bash
+video-knowledge youtube "https://youtu.be/VIDEO_ID"
+video-knowledge local "/path/to/video.mp4"
+video-knowledge m3u8 "https://example.com/stream.m3u8"
+```
 
-2. Run the script:
-   ```
-   python main.py youtube-urls.txt  # For YouTube videos
-   python main.py local-videos.txt  # For local videos
-   python main.py m3u8-streams.txt  # For .m3u8 streams
-   ```
+### Batch Processing
+Create `videos.yaml`:
+```yaml
+videos:
+  youtube:
+    - url: "https://youtu.be/dQw4w9WgXcQ"
+    - url: "https://youtu.be/jNQXAC9IVRw"
+  local:
+    - path: "/Users/me/Videos/"
+  m3u8:
+    - url: "https://example.com/live.m3u8"
+      title: "Live Stream"
+      order: 1
+```
+
+Process it:
+```bash
+video-knowledge process videos.yaml
+video-knowledge --dry-run process videos.yaml  # Preview
+```
+
+### Database
+```bash
+video-knowledge stats                    # View database
+video-knowledge --db-path custom.db ...  # Use custom DB
+video-knowledge view                     # Datasette GUI (requires: pip install datasette)
+```
 
 ## Configuration
 
-You can configure the application by setting environment variables or modifying the `src/config.py` file. Available options include:
+### Environment Variables
+| Variable | Default | Description |
+|---|---|---|
+| `VIDEO_DB_PATH` | `~/.video-knowledge/knowledge.db` | Database location |
+| `LOG_LEVEL` | `INFO` | Logging level |
+| `TRANSCRIPTION_ENGINE` | Auto-detected | `mlx-whisper` or `openai-whisper` |
+| `WHISPER_MODEL` | Auto-selected | See models below |
 
-- `VIDEO_DB_PATH`: Path to the SQLite database file (default: `knowledge.db`)
-- `LOG_LEVEL`: Logging level (default: `INFO`)
-- `LOG_FORMAT`: Format string for logging (default: `'%(asctime)s - %(name)s - %(levelname)s - %(message)s'`)
-- `WHISPER_MODEL`: MLX Whisper model to use for transcription (default: `mlx-community/whisper-medium.en-mlx`)
+### Transcription Models
+**macOS (Apple Silicon):**
+- Default: `mlx-community/whisper-medium.en-mlx`
+- Any MLX-compatible model
 
-All these configuration options are actively used in the project to control various aspects of the video processing pipeline.
+**Cross-platform:**
+- Default: `base.en`
+- Options: `tiny.en`, `base.en`, `small.en`, `medium.en`, `large`
 
-## Project Structure
-
+### Examples
+```bash
+# Custom settings
+VIDEO_DB_PATH=my_videos.db LOG_LEVEL=DEBUG video-knowledge process videos.yaml
+WHISPER_MODEL=small.en video-knowledge youtube "https://youtu.be/..."
 ```
-video_knowledge_project/
-├── src/
-│   ├── processors/
-│   │   ├── base_processor.py
-│   │   ├── youtube_processor.py
-│   │   ├── local_processor.py
-│   │   └── m3u8_processor.py
-│   ├── utils/
-│   │   └── transcription.py
-│   ├── database/
-│   │   ├── models.py
-│   │   └── database.py
-│   └── config.py
-├── main.py
-├── requirements.txt
-└── README.md
-```
+
+### CLI Options
+- `--db-path`: Custom database location
+- `--model`: Override transcription model
+- `--verbose/-v`: Increase logging
+- `--dry-run`: Preview without processing
+
+## Commands
+- `video-knowledge youtube <url>` - Process YouTube video
+- `video-knowledge local <path>` - Process local video
+- `video-knowledge m3u8 <url>` - Process M3U8 stream
+- `video-knowledge process <config.yaml>` - Batch process
+- `video-knowledge stats` - Database summary
+- `video-knowledge view` - Datasette GUI
