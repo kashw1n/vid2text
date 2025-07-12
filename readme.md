@@ -1,10 +1,10 @@
-# Video Knowledge CLI
+# video-knowledge
 
-Process YouTube videos, local files, and M3U8 streams to extract searchable knowledge.
+CLI tool that processes YouTube videos, local files, and M3U8 streams locally to extract searchable knowledge.
 
 ## Features
 - **Multi-source**: YouTube, local videos, M3U8 streams
-- **Auto-transcription**: MLX Whisper (macOS) or OpenAI Whisper (cross-platform)
+- **Auto-transcription**: MLX Whisper (macOS) or OpenAI Whisper (cross-platform) to run transcription locally
 - **SQLite storage**: Searchable database in `~/.video-knowledge/knowledge.db`
 - **Datasette integration**: Browse data with web GUI
 
@@ -59,8 +59,8 @@ videos:
   local:
     - path: "/Users/me/Videos/"
   m3u8:
-    - url: "https://example.com/live.m3u8"
-      title: "Live Stream"
+    - url: "https://example.com/video.m3u8"
+      title: "Lecture"
       order: 1
 ```
 
