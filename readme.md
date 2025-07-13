@@ -42,10 +42,7 @@ sudo apt install ffmpeg
 
 ### Install vid2text
 ```bash
-git clone https://github.com/yourusername/vid2text-project.git
-cd vid2text-project
-python -m venv venv && source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -e .
+pip install vid2text
 ```
 
 ## Usage
@@ -167,5 +164,20 @@ ffmpeg -version
 - `vid2text local <path>` - Process local video/folder
 - `vid2text m3u8 <url>` - Process M3U8 stream
 - `vid2text process <config.yaml>` - Batch process from YAML
-- `vid2text stats [--db-path PATH]` - Show database statistics
+- `vid2text stats` - Show database statistics
 - `vid2text view [--port PORT]` - Launch Datasette web interface
+
+## Development
+
+```bash
+git clone https://github.com/yourusername/vid2text.git
+cd vid2text
+python -m venv venv && source venv/bin/activate
+pip install -e ".[test]"
+
+# Run CLI
+vid2text --help
+
+# Run tests
+pytest
+```
