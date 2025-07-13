@@ -1,12 +1,12 @@
-# video-knowledge
+# vid2text
 
-CLI tool that processes YouTube videos, local files, and M3U8 streams locally to extract searchable knowledge.
+CLI tool for extracting searchable transcriptions from YouTube videos, local files, and M3U8 streams using local Whisper models.
 
 ## Features
-- **Multi-source**: YouTube, local videos, M3U8 streams
-- **Auto-transcription**: MLX Whisper (macOS) or OpenAI Whisper (cross-platform) to run transcription locally
-- **SQLite storage**: Searchable database in `~/.video-knowledge/knowledge.db`
-- **Datasette integration**: Browse data with web GUI
+- **Multi-source**: YouTube, local videos (.mp4, .avi, .mov, .mkv, .m4v), M3U8 streams
+- **Local transcription**: MLX Whisper (macOS) or OpenAI Whisper (cross-platform)
+- **SQLite storage**: Searchable database with Datasette web interface
+- **Batch processing**: YAML configuration for multiple videos
 
 ## Quick Start
 
@@ -14,105 +14,158 @@ CLI tool that processes YouTube videos, local files, and M3U8 streams locally to
 # Install
 pip install -e .
 
-# Process single video
-video-knowledge youtube "https://youtu.be/dQw4w9WgXcQ"
+# Process videos
+vid2text youtube "https://youtu.be/dQw4w9WgXcQ"
+vid2text local "/path/to/video.mp4"
+vid2text process config.yaml
 
-# Batch process from YAML
-video-knowledge process videos.yaml
-
-# View in browser (requires datasette)
-video-knowledge view
+# View results
+vid2text stats
+vid2text view  # Web interface (requires: pip install datasette)
 ```
 
 ## Installation
 
 **Prerequisites:** Python 3.8+, FFmpeg
 
+### Install FFmpeg
 ```bash
-git clone https://github.com/yourusername/video-knowledge-project.git
-cd video-knowledge-project
-python -m venv venv && source venv/bin/activate
-pip install -e .
+# macOS
+brew install ffmpeg
 
-# Install FFmpeg:
-# macOS: brew install ffmpeg
-# Ubuntu: sudo apt install ffmpeg
-# Windows: Download from ffmpeg.org
+# Ubuntu/Debian
+sudo apt install ffmpeg
+
+# Windows
+# Download from https://ffmpeg.org/download.html
+```
+
+### Install vid2text
+```bash
+git clone https://github.com/yourusername/vid2text-project.git
+cd vid2text-project
+python -m venv venv && source venv/bin/activate  # Windows: venv\Scripts\activate
+pip install -e .
 ```
 
 ## Usage
 
 ### Single Videos
 ```bash
-video-knowledge youtube "https://youtu.be/VIDEO_ID"
-video-knowledge local "/path/to/video.mp4"
-video-knowledge m3u8 "https://example.com/stream.m3u8"
+vid2text youtube "https://youtu.be/VIDEO_ID"
+vid2text local "/path/to/video.mp4"
+vid2text m3u8 "https://example.com/stream.m3u8"
+
+# With options
+vid2text --model small.en --verbose youtube "https://youtu.be/..."
+vid2text --dry-run local video.mp4  # Preview only
 ```
 
 ### Batch Processing
-Create `videos.yaml`:
+Create `config.yaml`:
 ```yaml
 videos:
   youtube:
     - url: "https://youtu.be/dQw4w9WgXcQ"
     - url: "https://youtu.be/jNQXAC9IVRw"
+      title: "Custom Title"  # Optional
   local:
-    - path: "/Users/me/Videos/"
+    - path: "/path/to/video.mp4"
+    - path: "/path/to/folder/"  # Process all videos in folder
+      title: "Folder Videos"
   m3u8:
     - url: "https://example.com/video.m3u8"
-      title: "Lecture"
+      title: "Live Stream"
       order: 1
+
+settings:  # Optional
+  whisper_model: "small.en"  # Override default model
+  log_level: "DEBUG"
 ```
 
-Process it:
+Process:
 ```bash
-video-knowledge process videos.yaml
-video-knowledge --dry-run process videos.yaml  # Preview
+vid2text process config.yaml
+vid2text --dry-run process config.yaml  # Preview
 ```
 
-### Database
+### Database Operations
 ```bash
-video-knowledge stats                    # View database
-video-knowledge --db-path custom.db ...  # Use custom DB
-video-knowledge view                     # Datasette GUI (requires: pip install datasette)
+vid2text stats                           # Show video count
+vid2text --db-path custom.db stats       # Custom database
+vid2text view                            # Launch web interface
+vid2text view --port 8080                # Custom port
 ```
 
 ## Configuration
 
 ### Environment Variables
 | Variable | Default | Description |
-|---|---|---|
-| `VIDEO_DB_PATH` | `~/.video-knowledge/knowledge.db` | Database location |
-| `LOG_LEVEL` | `INFO` | Logging level |
+|----------|---------|-------------|
+| `VIDEO_DB_PATH` | `~/.vid2text/knowledge.db` | Database file location |
+| `LOG_LEVEL` | `INFO` | Logging verbosity |
 | `TRANSCRIPTION_ENGINE` | Auto-detected | `mlx-whisper` or `openai-whisper` |
-| `WHISPER_MODEL` | Auto-selected | See models below |
+| `WHISPER_MODEL` | Auto-selected | Model name (see below) |
 
-### Transcription Models
-**macOS (Apple Silicon):**
-- Default: `mlx-community/whisper-medium.en-mlx`
-- Any MLX-compatible model
+### Whisper Models
 
-**Cross-platform:**
-- Default: `base.en`
-- Options: `tiny.en`, `base.en`, `small.en`, `medium.en`, `large`
+**macOS (Apple Silicon) - MLX Whisper:**
+- `mlx-community/whisper-medium.en-mlx` (default) - Good balance
+- `mlx-community/whisper-large-v3-mlx` - Best accuracy, slower
+- `mlx-community/whisper-small.en-mlx` - Faster, less accurate
 
-### Examples
-```bash
-# Custom settings
-VIDEO_DB_PATH=my_videos.db LOG_LEVEL=DEBUG video-knowledge process videos.yaml
-WHISPER_MODEL=small.en video-knowledge youtube "https://youtu.be/..."
-```
+**Cross-platform - OpenAI Whisper:**
+- `base.en` (default) - Good balance (~150MB)
+- `tiny.en` - Fastest (~40MB)
+- `small.en` - Better accuracy (~250MB) 
+- `medium.en` - High accuracy (~800MB)
+- `large` - Best accuracy (~3GB)
 
 ### CLI Options
-- `--db-path`: Custom database location
-- `--model`: Override transcription model
-- `--verbose/-v`: Increase logging
-- `--dry-run`: Preview without processing
+- `--db-path PATH` - Custom database location
+- `--model MODEL` - Override Whisper model
+- `--verbose/-v` - Increase logging (use `-vv` for debug)
+- `--dry-run` - Preview operations without processing
 
-## Commands
-- `video-knowledge youtube <url>` - Process YouTube video
-- `video-knowledge local <path>` - Process local video
-- `video-knowledge m3u8 <url>` - Process M3U8 stream
-- `video-knowledge process <config.yaml>` - Batch process
-- `video-knowledge stats` - Database summary
-- `video-knowledge view` - Datasette GUI
+## Examples
+
+```bash
+# Custom model and database
+WHISPER_MODEL=small.en vid2text --db-path ./videos.db youtube "https://youtu.be/..."
+
+# Debug processing issues
+vid2text -vv local problematic_video.mp4
+
+# Batch process with custom settings
+VIDEO_DB_PATH=./project.db LOG_LEVEL=DEBUG vid2text process videos.yaml
+
+# Quick stats check
+vid2text stats | grep "Total videos"
+```
+
+## Troubleshooting
+
+**FFmpeg not found:**
+```bash
+# Verify installation
+ffmpeg -version
+# Add to PATH if needed
+```
+
+**Out of memory during transcription:**
+- Try smaller Whisper model: `--model tiny.en`
+- Close other applications
+- Use MLX Whisper on Apple Silicon for better memory efficiency
+
+**Database locked error:**
+- Close any open Datasette instances
+- Check if another vid2text process is running
+
+
+## Commands Reference
+- `vid2text youtube <url>` - Process YouTube video
+- `vid2text local <path>` - Process local video/folder
+- `vid2text m3u8 <url>` - Process M3U8 stream
+- `vid2text process <config.yaml>` - Batch process from YAML
+- `vid2text stats [--db-path PATH]` - Show database statistics
+- `vid2text view [--port PORT]` - Launch Datasette web interface

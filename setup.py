@@ -7,9 +7,9 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
     requirements = [line.strip() for line in fh if line.strip() and not line.startswith("#")]
 
 setup(
-    name="video-knowledge-cli",
+    name="vid2text-cli",
     version="1.0.0",
-    author="Video Knowledge Project",
+    author="Vid2Text Project",
     description="A CLI tool for extracting and storing video content from various sources",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -29,8 +29,8 @@ setup(
     install_requires=requirements,
     entry_points={
         "console_scripts": [
-            "video-knowledge=video_knowledge.cli:cli",
-            "vk=video_knowledge.cli:cli",
+            "vid2text=vid2text.cli:cli",
+            "v2t=vid2text.cli:cli",
         ],
     },
 )

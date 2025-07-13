@@ -1,0 +1,20 @@
+# Vid2Text Project Configuration Example
+# This YAML file defines what videos to process and how to process them
+
+videos:
+  # YouTube videos - provide URLs and optionally custom titles
+  youtube:
+
+    - url: "https://www.youtube.com/watch?v=zzStOQFnJXw"
+    - url: "https://www.youtube.com/watch?v=E78ur2vnbqY"
+    - url: "https://www.youtube.com/watch?v=XKQDLUUzGFY"
+
+  # Local video files or directories
+  local:
+  #   - path: "/Users/kashw1n/Downloads/2D5B68F5-9054-44C4-AF1F-73A1EB3710D2.mp4"
+    - path: "/Users/kashw1n/Desktop/lesson20.mp4"
+  #   - path: "/Users/kashw1n/Desktop/lesson21.mp4"
+
+settings:
+#   whisper_model: "mlx-community/whisper-large-v3-mlx"
+  log_level: "DEBUG"

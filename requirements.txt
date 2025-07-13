@@ -4,7 +4,6 @@ bs4
 mlx-whisper
 openai-whisper
 yt-dlp[default]
-pydantic
 ffmpeg-python
 click
 rich
