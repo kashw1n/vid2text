@@ -6,26 +6,24 @@ import yt_dlp
 from .config import WHISPER_MODEL, TRANSCRIPTION_ENGINE
 import logging
 
-try:
-    import mlx_whisper
-    MLX_AVAILABLE = True
-except ImportError:
-    MLX_AVAILABLE = False
-    logging.warning("MLX Whisper not available - falling back to OpenAI Whisper")
+def _check_whisper_availability():
+    """Check which Whisper engines are available."""
+    mlx_available = False
+    openai_available = False
 
-try:
-    import whisper
-    OPENAI_AVAILABLE = True
-except ImportError:
-    OPENAI_AVAILABLE = False
-    logging.warning("OpenAI Whisper not available")
+    try:
+        import mlx_whisper
+        mlx_available = True
+    except ImportError:
+        pass
 
-if TRANSCRIPTION_ENGINE == 'mlx-whisper' and not MLX_AVAILABLE:
-    logging.warning("MLX Whisper requested but not available, falling back to OpenAI Whisper")
-    TRANSCRIPTION_ENGINE = 'openai-whisper'
+    try:
+        import whisper
+        openai_available = True
+    except ImportError:
+        pass
 
-if TRANSCRIPTION_ENGINE == 'openai-whisper' and not OPENAI_AVAILABLE:
-    raise ImportError("No Whisper engine available. Please install mlx-whisper or openai-whisper")
+    return mlx_available, openai_available
 
 
 class Transcriber:
@@ -33,7 +31,7 @@ class Transcriber:
     def load_audio(location: str) -> str:
         audio_file = f"{''.join(random.choices(string.ascii_lowercase + string.digits, k=7))}.wav"
         logging.info(f'Loading audio from: {location}')
-        
+
         if location.startswith(("http://", "https://")):
             logging.info(f'Downloading audio from URL to {audio_file}')
             ydl_opts = {
@@ -70,7 +68,7 @@ class Transcriber:
             error_msg = f"Audio file {audio_file} was not created"
             logging.error(error_msg)
             raise FileNotFoundError(error_msg)
-        
+
         file_size = os.path.getsize(audio_file)
         logging.info(f'Audio file created: {audio_file} ({file_size} bytes)')
         return audio_file
@@ -81,24 +79,39 @@ class Transcriber:
             error_msg = f"Audio file {audio_file} does not exist"
             logging.error(error_msg)
             raise FileNotFoundError(error_msg)
-        
-        
-        logging.info(f'Starting transcription of {audio_file} using {TRANSCRIPTION_ENGINE} with model {WHISPER_MODEL}')
-        
+
+        # Check availability at runtime
+        mlx_available, openai_available = _check_whisper_availability()
+
+        # Determine which engine to use
+        engine = TRANSCRIPTION_ENGINE
+        if engine == 'mlx-whisper' and not mlx_available:
+            logging.warning("MLX Whisper requested but not available, falling back to OpenAI Whisper")
+            engine = 'openai-whisper'
+
+        if engine == 'openai-whisper' and not openai_available:
+            error_msg = "No Whisper engine available. Please install mlx-whisper or openai-whisper"
+            logging.error(error_msg)
+            raise ImportError(error_msg)
+
+        logging.info(f'Starting transcription of {audio_file} using {engine} with model {WHISPER_MODEL}')
+
         try:
-            if TRANSCRIPTION_ENGINE == 'mlx-whisper':
+            if engine == 'mlx-whisper':
+                import mlx_whisper
                 result = mlx_whisper.transcribe(audio_file, path_or_hf_repo=WHISPER_MODEL)
                 logging.info(f'MLX Whisper transcription completed successfully')
             else:
+                import whisper
                 model = whisper.load_model(WHISPER_MODEL)
                 result = model.transcribe(audio_file)
                 logging.info(f'OpenAI Whisper transcription completed successfully')
-            
+
             transcription = result["text"]
             logging.info(f'Transcription result: {len(transcription)} characters')
             return transcription
         except Exception as e:
-            logging.error(f'Error during transcription with {TRANSCRIPTION_ENGINE}: {e}')
+            logging.error(f'Error during transcription with {engine}: {e}')
             raise RuntimeError(f'Transcription failed: {e}')
         finally:
             if os.path.exists(audio_file):
