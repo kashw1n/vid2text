@@ -96,11 +96,11 @@ vid2text view --port 8080                # Custom port
 - `mlx-community/whisper-small.en-mlx` - Faster, less accurate
 
 **Cross-platform - OpenAI Whisper:**
-- `base.en` (default) - Good balance (~150MB)
-- `tiny.en` - Fastest (~40MB)
-- `small.en` - Better accuracy (~250MB)
-- `medium.en` - High accuracy (~800MB)
-- `large` - Best accuracy (~3GB)
+- `base.en` (default) - Good balance
+- `tiny.en` - Fastest
+- `small.en` - Better accuracy
+- `medium.en` - High accuracy
+- `large` - Best accuracy
 
 ### CLI Options
 - `--db-path PATH` - Custom database location
