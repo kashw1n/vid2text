@@ -29,7 +29,9 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -e ".[test]"
+        # Install only lightweight dependencies for testing
+        pip install sqlite_utils youtube_transcript_api beautifulsoup4 yt-dlp[default] ffmpeg-python click rich pyyaml pytest
+        pip install -e . --no-deps
     
     - name: Run tests
       run: |

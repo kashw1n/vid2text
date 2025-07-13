@@ -35,10 +35,12 @@ Homepage = "https://github.com/yourusername/vid2text"
 
 [project.entry-points.console_scripts]
 vid2text = "vid2text.cli:cli"
-v2t = "vid2text.cli:cli"
 
 [project.optional-dependencies]
 test = ["pytest"]
+whisper = ["openai-whisper"]
+mlx = ["mlx-whisper"]
+all = ["openai-whisper", "mlx-whisper"]
 
 [tool.setuptools.packages.find]
 where = ["."]

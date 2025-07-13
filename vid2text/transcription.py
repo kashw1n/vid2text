@@ -82,6 +82,7 @@ class Transcriber:
             logging.error(error_msg)
             raise FileNotFoundError(error_msg)
         
+        
         logging.info(f'Starting transcription of {audio_file} using {TRANSCRIPTION_ENGINE} with model {WHISPER_MODEL}')
         
         try:
