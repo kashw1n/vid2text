@@ -41,6 +41,7 @@ def process_with_progress(processor, location, db, description):
 @click.option('--model', default=WHISPER_MODEL, help='Whisper model')
 @click.option('--verbose', '-v', count=True, help='Increase verbosity')
 @click.option('--dry-run', is_flag=True, help='Preview only')
+@click.version_option(version="0.1.0")
 @click.pass_context
 def cli(ctx, db_path, model, verbose, dry_run):
     """vid2text CLI - Extract and store video transcription from various sources."""
@@ -148,11 +149,11 @@ def process(ctx, config_file):
 
 
 @cli.command()
-@click.option('--db-path', default=DATABASE_PATH, help='Database path')
-def stats(db_path):
+@click.pass_context
+def stats(ctx):
     """Show database statistics."""
     try:
-        db = VideoDatabase(db_path)
+        db = ctx.obj['db']
         videos = list(db.db['videos'].rows)
         console.print(f"[blue]Total videos:[/blue] {len(videos)}")
         if videos:

@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vid2text"
+version = "0.1.0"
+description = "A CLI tool for extracting and storing video content from various sources"
+readme = "README.md"
+authors = [{name = "Vid2Text Project"}]
+license = {text = "MIT"}
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    "sqlite_utils",
+    "youtube_transcript_api",
+    "beautifulsoup4",
+    "mlx-whisper",
+    "openai-whisper",
+    "yt-dlp[default]",
+    "ffmpeg-python",
+    "click",
+    "rich",
+    "pyyaml",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/vid2text"
+
+[project.entry-points.console_scripts]
+vid2text = "vid2text.cli:cli"
+v2t = "vid2text.cli:cli"
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["vid2text*"]
