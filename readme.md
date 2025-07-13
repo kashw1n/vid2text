@@ -8,22 +8,6 @@ CLI tool for extracting searchable transcriptions from YouTube videos, local fil
 - **SQLite storage**: Searchable database with Datasette web interface
 - **Batch processing**: YAML configuration for multiple videos
 
-## Quick Start
-
-```bash
-# Install
-pip install -e .
-
-# Process videos
-vid2text youtube "https://youtu.be/dQw4w9WgXcQ"
-vid2text local "/path/to/video.mp4"
-vid2text process config.yaml
-
-# View results
-vid2text stats
-vid2text view  # Web interface (requires: pip install datasette)
-```
-
 ## Installation
 
 **Prerequisites:** Python 3.9+, FFmpeg
@@ -47,7 +31,7 @@ pip install vid2text
 
 ## Usage
 
-### Single Videos
+### Single Video
 ```bash
 vid2text youtube "https://youtu.be/VIDEO_ID"
 vid2text local "/path/to/video.mp4"
@@ -90,7 +74,7 @@ vid2text --dry-run process config.yaml  # Preview
 ```bash
 vid2text stats                           # Show video count
 vid2text --db-path custom.db stats       # Custom database
-vid2text view                            # Launch web interface
+vid2text view                            # Launch web interface (requires datasette)
 vid2text view --port 8080                # Custom port
 ```
 
@@ -114,7 +98,7 @@ vid2text view --port 8080                # Custom port
 **Cross-platform - OpenAI Whisper:**
 - `base.en` (default) - Good balance (~150MB)
 - `tiny.en` - Fastest (~40MB)
-- `small.en` - Better accuracy (~250MB) 
+- `small.en` - Better accuracy (~250MB)
 - `medium.en` - High accuracy (~800MB)
 - `large` - Best accuracy (~3GB)
 
