@@ -9,7 +9,7 @@ description = "A CLI tool for extracting and storing video content from various 
 readme = "README.md"
 authors = [{name = "Vid2Text Project"}]
 license = {text = "MIT"}
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",

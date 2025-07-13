@@ -250,6 +250,26 @@ def test_youtube_command_error(mock_process, temp_db):
     assert 'Error:' in result.output
 
 
+def test_transcription_without_whisper():
+    """Test that transcription fails gracefully without Whisper packages."""
+    from vid2text.transcription import Transcriber
+    import tempfile
+    
+    # Create a dummy audio file
+    with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as f:
+        f.write(b'dummy audio content')
+        audio_file = f.name
+    
+    try:
+        # This should fail if no Whisper packages are installed
+        with pytest.raises((ImportError, RuntimeError)):
+            Transcriber.transcribe_audio(audio_file)
+    finally:
+        import os
+        if os.path.exists(audio_file):
+            os.unlink(audio_file)
+
+
 def test_database_operations(temp_db):
     """Test basic database operations."""
     db = VideoDatabase(temp_db)

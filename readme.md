@@ -26,7 +26,7 @@ vid2text view  # Web interface (requires: pip install datasette)
 
 ## Installation
 
-**Prerequisites:** Python 3.8+, FFmpeg
+**Prerequisites:** Python 3.9+, FFmpeg
 
 ### Install FFmpeg
 ```bash
