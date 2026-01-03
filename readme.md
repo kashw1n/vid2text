@@ -26,7 +26,8 @@ sudo apt install ffmpeg
 
 ### Install vid2text
 ```bash
-pip install vid2text
+pipx install vid2text
+pipx upgrade vid2text
 ```
 
 ## Usage
@@ -35,6 +36,7 @@ pip install vid2text
 ```bash
 vid2text youtube "https://youtu.be/VIDEO_ID"
 vid2text local "/path/to/video.mp4"
+vid2text local "/path/to/folder"        # Process all videos in folder (recursive)
 vid2text m3u8 "https://example.com/stream.m3u8"
 
 # With options
@@ -52,7 +54,7 @@ videos:
       title: "Custom Title"  # Optional
   local:
     - path: "/path/to/video.mp4"
-    - path: "/path/to/folder/"  # Process all videos in folder
+    - path: "/path/to/folder/"  # Process all videos in folder (recursive)
       title: "Folder Videos"
   m3u8:
     - url: "https://example.com/video.m3u8"
@@ -69,6 +71,10 @@ Process:
 vid2text process config.yaml
 vid2text --dry-run process config.yaml  # Preview
 ```
+
+Notes:
+- `local` entries can be a file or a folder; folders are scanned recursively for supported video types.
+- If a `title` is provided for a folder with multiple files, each item is stored as `Title - filename`.
 
 ### Database Operations
 ```bash
@@ -165,3 +171,13 @@ vid2text --help
 # Run tests
 pytest
 ```
+
+## Release
+
+Release is automated by GitHub Actions. Creating a GitHub Release triggers tests and publishes to PyPI.
+
+Steps:
+1. Bump versions in `pyproject.toml` and `vid2text/cli.py`.
+2. Push the version change to `main`.
+3. Create a GitHub Release (tag like `v0.1.1`).
+4. The `Publish to PyPI` workflow runs tests and publishes if green.

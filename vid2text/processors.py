@@ -118,6 +118,22 @@ class YouTubeProcessor(BaseProcessor):
 class LocalProcessor(BaseProcessor):
     VIDEO_EXTENSIONS = ('.mp4', '.avi', '.mov', '.mkv', '.m4v')
 
+    def _collect_video_files(self, location: str) -> List[str]:
+        if os.path.isfile(location):
+            if not location.lower().endswith(self.VIDEO_EXTENSIONS):
+                raise ValueError(f"Unsupported video format: {location}")
+            return [os.path.abspath(location)]
+
+        if os.path.isdir(location):
+            video_paths = []
+            for root, _, files in os.walk(location):
+                for file in files:
+                    if file.lower().endswith(self.VIDEO_EXTENSIONS):
+                        video_paths.append(os.path.join(root, file))
+            return video_paths
+
+        raise FileNotFoundError(f"Video path not found: {location}")
+
     def get_video_locations(self, input_file: str) -> List[str]:
         video_paths = []
         with open(input_file, 'r') as file:
@@ -145,20 +161,43 @@ class LocalProcessor(BaseProcessor):
             raise ValueError("Empty file path provided")
         
         if not os.path.exists(location):
-            raise FileNotFoundError(f"Video file not found: {location}")
-        
+            raise FileNotFoundError(f"Video path not found: {location}")
+
+        video_paths = self._collect_video_files(location)
+        if not video_paths:
+            raise ValueError(f"No supported video files found in directory: {location}")
+
+        is_directory = os.path.isdir(location)
+        errors = []
+        for video_path in video_paths:
+            try:
+                title = custom_title or os.path.basename(video_path)
+                if custom_title and is_directory and len(video_paths) > 1:
+                    title = f"{custom_title} - {os.path.basename(video_path)}"
+                self._process_single_video(video_path, db, title)
+            except Exception as e:
+                logging.error(f'Error processing local video {video_path}: {e}')
+                errors.append((video_path, str(e)))
+
+        if errors:
+            message = f"Failed to process {len(errors)} of {len(video_paths)} videos."
+            if errors:
+                message = f"{message} First error: {errors[0][1]}"
+            raise RuntimeError(message)
+
+    def _process_single_video(self, location: str, db: VideoDatabase, title: str) -> None:
         if not os.path.isfile(location):
             raise ValueError(f"Path is not a file: {location}")
-        
+
         if not location.lower().endswith(self.VIDEO_EXTENSIONS):
             raise ValueError(f"Unsupported video format: {location}")
-        
+
         file_size = os.path.getsize(location)
         if file_size == 0:
             raise ValueError(f"Video file is empty: {location}")
-        
+
         logging.info(f'Processing video file: {location} ({file_size} bytes)')
-        
+
         try:
             with open(location, 'rb') as f:
                 video_id = hashlib.sha256(f.read()).hexdigest()[:11]
@@ -172,7 +211,6 @@ class LocalProcessor(BaseProcessor):
         audio_file = Transcriber.load_audio(location)
         transcription = Transcriber.transcribe_audio(audio_file)
 
-        title = custom_title or os.path.basename(location)
         video_data = {
             'id': video_id,
             'title': title,

@@ -9,6 +9,7 @@ from click.testing import CliRunner
 
 from vid2text.cli import cli
 from vid2text.database import VideoDatabase
+from vid2text.processors import LocalProcessor
 
 
 @pytest.fixture
@@ -85,6 +86,19 @@ def test_local_dry_run(tmpdir):
     assert 'Would process local file:' in result.output
     # Check for the filename instead of full path due to Rich formatting
     assert 'test_video.mp4' in result.output
+
+
+def test_local_folder_dry_run(tmpdir):
+    """Test local command with a folder in dry-run mode."""
+    runner = CliRunner()
+
+    folder = tmpdir.mkdir('videos')
+    folder.join('a.mp4').write('dummy video content a')
+    folder.join('b.mkv').write('dummy video content b')
+
+    result = runner.invoke(cli, ['--dry-run', 'local', str(folder)])
+    assert result.exit_code == 0
+    assert 'Would process local folder:' in result.output
 
 
 def test_local_file_not_found():
@@ -296,6 +310,28 @@ def test_database_operations(temp_db):
     videos = list(db.db['videos'].rows)
     assert len(videos) == 1
     assert videos[0]['title'] == 'Test Video'
+
+
+@patch('vid2text.processors.Transcriber.transcribe_audio')
+@patch('vid2text.processors.Transcriber.load_audio')
+def test_local_folder_processing(mock_load_audio, mock_transcribe_audio, temp_db, tmpdir):
+    """Test processing a folder of local videos."""
+    mock_load_audio.return_value = 'dummy.wav'
+    mock_transcribe_audio.return_value = 'Test transcription content'
+
+    folder = tmpdir.mkdir('videos')
+    folder.join('a.mp4').write('dummy video content a')
+    folder.join('b.mkv').write('dummy video content b')
+
+    db = VideoDatabase(temp_db)
+    processor = LocalProcessor()
+    processor.process_video_with_title(str(folder), db, custom_title='Batch')
+
+    videos = list(db.db['videos'].rows)
+    assert len(videos) == 2
+    titles = {video['title'] for video in videos}
+    assert 'Batch - a.mp4' in titles
+    assert 'Batch - b.mkv' in titles
 
 
 def test_database_validation_errors(temp_db):

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vid2text"
-version = "0.1.0"
+version = "0.2.0"
 description = "A CLI tool for extracting and storing video content from various sources"
 readme = "README.md"
 authors = [{name = "Vid2Text Project"}]

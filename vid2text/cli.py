@@ -41,7 +41,7 @@ def process_with_progress(processor, location, db, description):
 @click.option('--model', default=WHISPER_MODEL, help='Whisper model')
 @click.option('--verbose', '-v', count=True, help='Increase verbosity')
 @click.option('--dry-run', is_flag=True, help='Preview only')
-@click.version_option(version="0.1.0")
+@click.version_option(version="0.2.0")
 @click.pass_context
 def cli(ctx, db_path, model, verbose, dry_run):
     """vid2text CLI - Extract and store video transcription from various sources."""
@@ -66,14 +66,16 @@ def youtube(ctx, url):
 @click.pass_context
 def local(ctx, path):
     """Process a local video file."""
-    if not Path(path).exists():
+    local_path = Path(path)
+    if not local_path.exists():
         console.print(f"[red]✗ File not found: {path}[/red]")
         sys.exit(1)
     
     if ctx.obj['dry_run']:
-        console.print(f"[yellow]Would process local file:[/yellow] {path}")
+        label = "folder" if local_path.is_dir() else "file"
+        console.print(f"[yellow]Would process local {label}:[/yellow] {path}")
         return
-    process_with_progress(LocalProcessor(), str(Path(path).absolute()), ctx.obj['db'], "Processing local video...")
+    process_with_progress(LocalProcessor(), str(local_path.absolute()), ctx.obj['db'], "Processing local video...")
 
 
 @cli.command()
